@@ -1,0 +1,86 @@
+<% content_for :title, "Order ##{@order.order_number} - La Reta" %>
+
+<header class="bg-gradient-to-r from-green-800 to-green-600 text-white">
+  <div class="container mx-auto px-4 py-8 text-center">
+    <h1 class="text-4xl font-bold mb-2">Order #<%= @order.order_number %></h1>
+    <p class="text-xl opacity-90">Order Details</p>
+  </div>
+</header>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <!-- Order Status -->
+      <div class="text-center mb-6">
+        <div class="inline-block px-6 py-2 rounded-full text-sm font-bold <%= @order.status_color %>">
+          <%= @order.status.humanize %>
+        </div>
+        <p class="text-gray-600 mt-2">Ordered at <%= @order.formatted_time %></p>
+      </div>
+      
+      <!-- Customer Info -->
+      <div class="border-b pb-4 mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Customer Information</h3>
+        <p><strong>Name:</strong> <%= @order.table_name %></p>
+        <% if @order.notes.present? %>
+          <p><strong>Notes:</strong> <%= @order.notes %></p>
+        <% end %>
+      </div>
+      
+      <!-- Order Items -->
+      <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Order Items</h3>
+        <div class="space-y-3">
+          <% @order.order_items.each do |item| %>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <h4 class="font-medium"><%= item.menu_item.name %></h4>
+                <p class="text-sm text-gray-600"><%= item.menu_item.category.name %></p>
+              </div>
+              <div class="text-right">
+                <p class="font-medium">$<%= number_with_precision(item.subtotal, precision: 2) %></p>
+                <p class="text-sm text-gray-600"><%= item.quantity %>x $<%= number_with_precision(item.unit_price, precision: 2) %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      
+      <!-- Total -->
+      <div class="border-t pt-4 mb-6">
+        <div class="flex justify-between items-center text-xl font-bold">
+          <span>Total:</span>
+          <span class="text-green-600">$<%= number_with_precision(@order.total_amount, precision: 2) %></span>
+        </div>
+      </div>
+      
+      <!-- Status Timeline -->
+      <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Order Status</h3>
+        <div class="flex items-center justify-between">
+          <% %w[pending preparing ready delivered].each_with_index do |status, index| %>
+            <div class="flex flex-col items-center flex-1">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
+                          <%= @order.status == status ? 'bg-green-500 text-white' : 
+                              %w[pending preparing ready delivered].index(@order.status).to_i >= index ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-500' %>">
+                <%= index + 1 %>
+              </div>
+              <p class="text-xs mt-1 text-center <%= @order.status == status ? 'text-green-600 font-bold' : 'text-gray-500' %>">
+                <%= status.humanize %>
+              </p>
+            </div>
+            <% unless index == 3 %>
+              <div class="flex-1 h-1 <%= %w[pending preparing ready delivered].index(@order.status).to_i > index ? 'bg-green-200' : 'bg-gray-200' %>"></div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="text-center">
+        <%= link_to "← Back to Menu", root_path, 
+            class: "bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded transition-colors" %>
+      </div>
+    </div>
+  </div>
+</div>

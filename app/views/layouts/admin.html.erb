@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "La Reta - Admin Panel" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-gray-100">
+    <!-- Admin Navigation -->
+    <nav class="bg-green-800 text-white shadow-lg">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-4">
+            <%= link_to admin_root_path, class: "text-xl font-bold hover:text-green-200" do %>
+              🍽️ La Reta Admin
+            <% end %>
+            
+            <div class="hidden md:flex space-x-4">
+              <%= link_to "Dashboard", admin_root_path, 
+                  class: "hover:text-green-200 px-3 py-2 rounded #{request.path == admin_root_path ? 'bg-green-700' : ''}" %>
+              <%= link_to "Categories", admin_categories_path, 
+                  class: "hover:text-green-200 px-3 py-2 rounded #{request.path.include?('categories') ? 'bg-green-700' : ''}" %>
+              <%= link_to "Menu Items", admin_menu_items_path, 
+                  class: "hover:text-green-200 px-3 py-2 rounded #{request.path.include?('menu_items') ? 'bg-green-700' : ''}" %>
+              <%= link_to "Orders", admin_orders_path, 
+                  class: "hover:text-green-200 px-3 py-2 rounded #{request.path.include?('orders') ? 'bg-green-700' : ''}" %>
+              <%= link_to "Kitchen", admin_kitchen_path, 
+                  class: "hover:text-green-200 px-3 py-2 rounded #{request.path.include?('kitchen') ? 'bg-green-700' : ''}" %>
+            </div>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <%= link_to "View Site", root_path, 
+                class: "hover:text-green-200 px-3 py-2 rounded", 
+                target: "_blank" %>
+            
+            <div class="relative group">
+              <button class="hover:text-green-200 px-3 py-2 rounded">
+                👤 <%= current_admin_user.name %>
+              </button>
+              <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block">
+                <%= link_to "Sign Out", destroy_admin_user_session_path, 
+                    method: :delete,
+                    class: "block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+      <% if notice %>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" role="alert">
+          <%= notice %>
+        </div>
+      <% end %>
+      
+      <% if alert %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+          <%= alert %>
+        </div>
+      <% end %>
+      
+      <main>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

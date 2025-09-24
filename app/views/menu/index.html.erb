@@ -1,0 +1,170 @@
+<% content_for :title, "La Reta - Digital Menu" %>
+
+<header class="bg-gradient-to-r from-green-800 to-green-600 text-white">
+  <div class="container mx-auto px-4 py-8 text-center relative">
+    <% if admin_signed_in? %>
+      <%= link_to admin_root_path, 
+          class: "absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors" do %>
+        ⚙️ Admin Panel
+      <% end %>
+    <% else %>
+      <%= link_to new_admin_user_session_path, 
+          class: "absolute top-4 right-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors",
+          data: { turbo: false } do %>
+        ⚙️ Admin Login
+      <% end %>
+    <% end %>
+    
+    <h1 class="text-4xl md:text-6xl font-bold mb-2">🍽️ La Reta</h1>
+    <p class="text-xl md:text-2xl opacity-90">Disfruta de nuestros deliciosos platillos</p>
+  </div>
+</header>
+
+<!-- Category Navigation -->
+<nav class="bg-white shadow-md sticky top-0 z-40">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex flex-wrap justify-center gap-4" data-controller="category-filter">
+      <button class="category-tab active px-6 py-2 rounded-full bg-green-500 text-white font-medium transition-all hover:bg-green-600" 
+              data-category="all"
+              data-action="click->category-filter#filterCategory">
+        Todos
+      </button>
+      <% @categories.each do |category| %>
+        <button class="category-tab px-6 py-2 rounded-full bg-gray-200 text-gray-700 font-medium transition-all hover:bg-gray-300" 
+                data-category="<%= category.id %>"
+                data-action="click->category-filter#filterCategory">
+          <%= category.name %>
+        </button>
+      <% end %>
+    </div>
+  </div>
+</nav>
+
+<!-- Featured Carousel -->
+<% if @featured_items.any? %>
+  <div class="container mx-auto px-4 py-8">
+    <div class="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg" data-controller="carousel">
+      <% @featured_items.each_with_index do |item, index| %>
+        <div class="carousel-slide absolute w-full h-full <%= index == 0 ? 'active' : '' %>" 
+             data-carousel-target="slide">
+          <% if item.image.attached? %>
+            <%= image_tag item.image, 
+                class: "w-full h-full object-cover",
+                alt: item.name %>
+          <% else %>
+            <div class="w-full h-full bg-gradient-to-r from-green-600 to-green-800"></div>
+          <% end %>
+          <div class="absolute inset-0 bg-black/40"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-center text-white">
+            <div>
+              <h2 class="text-3xl md:text-5xl font-bold mb-2"><%= item.category.name %></h2>
+              <p class="text-lg md:text-xl"><%= item.name %> - $<%= item.formatted_price %></p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        <% @featured_items.each_with_index do |item, index| %>
+          <button class="carousel-indicator w-3 h-3 rounded-full bg-white/50 <%= index == 0 ? 'active bg-white' : '' %>"
+                  data-carousel-target="indicator"
+                  data-action="click->carousel#goToSlide"
+                  data-slide="<%= index %>"></button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<!-- Menu Items -->
+<div class="container mx-auto px-4 py-8" data-controller="shopping-cart">
+  <% if @items_by_category.any? %>
+    <% @items_by_category.each do |category, items| %>
+      <section class="mb-12 category-section" data-category-id="<%= category.id %>">
+        <h2 class="text-3xl font-bold text-center text-green-800 mb-8 relative">
+          <%= category.name %>
+          <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-green-500 rounded"></div>
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <% items.each do |item| %>
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+              <% if item.image.attached? %>
+                <%= image_tag item.image, 
+                    class: "w-full h-48 object-cover",
+                    alt: item.name %>
+              <% else %>
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                  <span class="text-gray-500 text-lg">📷 <%= item.name %></span>
+                </div>
+              <% end %>
+              
+              <div class="p-6">
+                <div class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full inline-block mb-2">
+                  <%= item.category.name %>
+                </div>
+                
+                <h3 class="text-xl font-bold text-green-800 mb-2"><%= item.name %></h3>
+                <p class="text-gray-600 mb-4 text-sm"><%= item.description || "Delicious dish prepared with the finest ingredients" %></p>
+                
+                <div class="flex justify-between items-center">
+                  <span class="text-2xl font-bold text-green-600">
+                    $<%= number_with_precision(item.price, precision: 2) %>
+                  </span>
+                  
+                  <div class="flex items-center space-x-2 bg-gray-100 rounded-full px-1">
+                    <button class="bg-green-500 text-white w-8 h-8 rounded-full hover:bg-green-600 transition-colors disabled:bg-gray-300"
+                            data-action="click->shopping-cart#decreaseQuantity"
+                            data-shopping-cart-item-id-param="<%= item.id %>"
+                            data-shopping-cart-target="decreaseBtn<%= item.id %>">
+                      -
+                    </button>
+                    <span class="w-8 text-center font-bold" 
+                          data-shopping-cart-target="quantity<%= item.id %>">0</span>
+                    <button class="bg-green-500 text-white w-8 h-8 rounded-full hover:bg-green-600 transition-colors"
+                            data-action="click->shopping-cart#increaseQuantity"
+                            data-shopping-cart-item-id-param="<%= item.id %>"
+                            data-shopping-cart-item-name-param="<%= item.name %>"
+                            data-shopping-cart-item-price-param="<%= item.price %>">
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  <% else %>
+    <div class="text-center py-16">
+      <div class="text-6xl mb-4">🍽️</div>
+      <h3 class="text-2xl font-bold text-gray-600 mb-2">Menu Coming Soon</h3>
+      <p class="text-gray-500">We're preparing something delicious for you!</p>
+    </div>
+  <% end %>
+</div>
+
+<!-- Floating Cart -->
+<div id="floating-cart" 
+     class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg cursor-pointer hidden hover:bg-green-600 transition-colors"
+     data-shopping-cart-target="floatingCart"
+     data-action="click->shopping-cart#showCart">
+  🛒 View Order 
+  <span class="bg-red-500 text-white text-sm px-2 py-1 rounded-full ml-2"
+        data-shopping-cart-target="cartCount">0</span>
+</div>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-8 mt-16">
+  <div class="container mx-auto px-4 text-center">
+    <h3 class="text-xl font-bold mb-4">Payment Information</h3>
+    <div class="space-y-2">
+      <p>💳 Mercado Pago: 722969010244636555</p>
+      <p>🏦 Nu Bank: 638180010176146882</p>
+    </div>
+    <div class="mt-6 pt-6 border-t border-gray-700">
+      <p>&copy; 2025 La Reta. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

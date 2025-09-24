@@ -1,0 +1,174 @@
+<% content_for :title, "Kitchen Dashboard - Admin" %>
+
+<div class="mb-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-2">Kitchen Dashboard</h1>
+  <p class="text-gray-600">Manage incoming orders and track preparation status</p>
+</div>
+
+<!-- Order Status Filter -->
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+  <div class="flex flex-wrap gap-2" data-controller="category-filter">
+    <%= link_to admin_kitchen_index_path, 
+        class: "px-4 py-2 rounded-full text-sm font-medium transition-colors #{params[:status].blank? ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+      All Orders (<%= @orders.count %>)
+    <% end %>
+    
+    <% Order.statuses.each do |status, _| %>
+      <%= link_to admin_kitchen_index_path(status: status), 
+          class: "px-4 py-2 rounded-full text-sm font-medium transition-colors #{params[:status] == status ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+        <%= status.humanize %> (<%= @orders.where(status: status).count %>)
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<!-- Orders List -->
+<% if @orders.any? %>
+  <div class="space-y-4">
+    <% @orders.each do |order| %>
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Order Header -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+              <h3 class="text-lg font-bold text-gray-900">
+                Order #<%= order.order_number %>
+              </h3>
+              <span class="px-3 py-1 rounded-full text-sm font-medium
+                <%= case order.status
+                    when 'pending' then 'bg-yellow-100 text-yellow-800'
+                    when 'confirmed' then 'bg-blue-100 text-blue-800'
+                    when 'preparing' then 'bg-orange-100 text-orange-800'
+                    when 'ready' then 'bg-green-100 text-green-800'
+                    when 'delivered' then 'bg-gray-100 text-gray-800'
+                    when 'cancelled' then 'bg-red-100 text-red-800'
+                    else 'bg-gray-100 text-gray-800'
+                    end %>">
+                <%= order.status.humanize %>
+              </span>
+            </div>
+            
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+              <span>🕐 <%= time_ago_in_words(order.created_at) %> ago</span>
+              <span class="font-bold text-green-600">$<%= number_with_precision(order.total, precision: 2) %></span>
+            </div>
+          </div>
+          
+          <!-- Customer Info -->
+          <div class="mt-2 text-sm text-gray-600">
+            <p><strong>Customer:</strong> <%= order.customer_name %></p>
+            <% if order.customer_phone.present? %>
+              <p><strong>Phone:</strong> <%= order.customer_phone %></p>
+            <% end %>
+            <% if order.notes.present? %>
+              <p><strong>Notes:</strong> <%= order.notes %></p>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="px-6 py-4">
+          <div class="space-y-3">
+            <% order.order_items.includes(:menu_item).each do |item| %>
+              <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                <div class="flex items-center space-x-3">
+                  <% if item.menu_item.image.attached? %>
+                    <%= image_tag item.menu_item.image, class: "w-12 h-12 object-cover rounded-lg" %>
+                  <% else %>
+                    <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <span class="text-gray-500 text-xs">📷</span>
+                    </div>
+                  <% end %>
+                  
+                  <div>
+                    <h4 class="font-medium text-gray-900"><%= item.menu_item.name %></h4>
+                    <p class="text-sm text-gray-600">
+                      $<%= number_with_precision(item.price, precision: 2) %> each
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="text-right">
+                  <span class="text-lg font-bold text-gray-900">
+                    × <%= item.quantity %>
+                  </span>
+                  <p class="text-sm text-gray-600">
+                    $<%= number_with_precision(item.subtotal, precision: 2) %>
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Order Actions -->
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <div class="text-sm text-gray-600">
+              Created: <%= order.created_at.strftime("%b %d, %Y at %I:%M %p") %>
+            </div>
+            
+            <div class="flex space-x-2">
+              <% unless order.cancelled? || order.delivered? %>
+                <% if order.pending? %>
+                  <%= link_to "Confirm Order", admin_kitchen_path(order, status: 'confirmed'), 
+                      method: :patch,
+                      class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors" %>
+                <% elsif order.confirmed? %>
+                  <%= link_to "Start Preparing", admin_kitchen_path(order, status: 'preparing'), 
+                      method: :patch,
+                      class: "bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors" %>
+                <% elsif order.preparing? %>
+                  <%= link_to "Mark Ready", admin_kitchen_path(order, status: 'ready'), 
+                      method: :patch,
+                      class: "bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors" %>
+                <% elsif order.ready? %>
+                  <%= link_to "Mark Delivered", admin_kitchen_path(order, status: 'delivered'), 
+                      method: :patch,
+                      class: "bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors" %>
+                <% end %>
+                
+                <!-- Cancel Option -->
+                <% unless order.delivered? %>
+                  <%= link_to "Cancel", admin_kitchen_path(order, status: 'cancelled'), 
+                      method: :patch,
+                      confirm: "Are you sure you want to cancel this order?",
+                      class: "bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors" %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <!-- Empty State -->
+  <div class="bg-white rounded-lg shadow p-8 text-center">
+    <div class="text-6xl mb-4">👨‍🍳</div>
+    <h3 class="text-xl font-bold text-gray-900 mb-2">No orders found</h3>
+    <p class="text-gray-600 mb-6">
+      <% if params[:status].present? %>
+        No orders with "<%= params[:status].humanize %>" status.
+      <% else %>
+        No orders have been placed yet. Orders will appear here when customers place them.
+      <% end %>
+    </p>
+    <%= link_to "View All Orders", admin_kitchen_index_path, 
+        class: "bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors" %>
+  </div>
+<% end %>
+
+<!-- Auto-refresh notification -->
+<div class="fixed bottom-4 right-4">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-600">
+    🔄 Page refreshes automatically every 30 seconds
+  </div>
+</div>
+
+<script>
+  // Auto-refresh every 30 seconds
+  setTimeout(function() {
+    window.location.reload();
+  }, 30000);
+</script>
