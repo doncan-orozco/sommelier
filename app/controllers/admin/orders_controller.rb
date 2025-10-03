@@ -1,8 +1,8 @@
 class Admin::OrdersController < Admin::BaseController
-  before_action :set_order, only: [:show, :update, :update_status]
+  before_action :set_order, only: [ :show, :update, :update_status ]
 
   def index
-    @orders = Order.includes(order_items: [:menu_item])
+    @orders = Order.includes(order_items: [ :menu_item ])
                   .recent
 
     @orders = @orders.by_status(params[:status]) if params[:status].present?
@@ -10,10 +10,10 @@ class Admin::OrdersController < Admin::BaseController
 
     @status_counts = {
       all: Order.count,
-      pending: Order.by_status('pending').count,
-      preparing: Order.by_status('preparing').count,
-      ready: Order.by_status('ready').count,
-      delivered: Order.by_status('delivered').count
+      pending: Order.by_status("pending").count,
+      preparing: Order.by_status("preparing").count,
+      ready: Order.by_status("ready").count,
+      delivered: Order.by_status("delivered").count
     }
   end
 
@@ -22,7 +22,7 @@ class Admin::OrdersController < Admin::BaseController
 
   def update
     if @order.update(order_params)
-      redirect_to admin_order_path(@order), notice: 'Order was successfully updated.'
+      redirect_to admin_order_path(@order), notice: "Order was successfully updated."
     else
       render :show, status: :unprocessable_entity
     end

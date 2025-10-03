@@ -9,6 +9,6 @@ class CreateOrderItems < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :order_items, [:order_id, :menu_item_id], unique: true
+    add_index :order_items, [ :order_id, :menu_item_id ], unique: true
   end
 end
