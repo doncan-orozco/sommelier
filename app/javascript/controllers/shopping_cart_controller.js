@@ -6,120 +6,116 @@ export default class extends Controller {
   static values = { items: Object }
 
   connect() {
-    this.itemsValue = {}
     this.loadFromLocalStorage()
     this.updateCartDisplay()
+    this.initializeItemDisplays()
   }
 
-  increaseQuantity(event) {
-    const itemId = event.params.itemId
-    const itemName = event.params.itemName
-    const itemPrice = parseFloat(event.params.itemPrice)
+  itemsValueChanged() {
+    this.updateCartDisplay()
+    this.saveToLocalStorage()
+  }
+
+  initializeItemDisplays() {
+    const itemButtons = this.element.querySelectorAll('[data-action="click->shopping-cart#increaseQuantity"]')
+    itemButtons.forEach(button => {
+      const itemId = button.dataset.shoppingCartItemIdParam
+      this.updateQuantityDisplay(itemId)
+    })
+  }
+
+  increaseQuantity({ params }) {
+    const { itemId, itemName, itemPrice: itemPriceString } = params;
+    const itemPrice = parseFloat(itemPriceString);
     
-    if (!this.itemsValue[itemId]) {
-      this.itemsValue[itemId] = {
+    const currentItems = { ...this.itemsValue };
+
+    if (!currentItems[itemId]) {
+      currentItems[itemId] = {
         id: itemId,
         name: itemName,
         price: itemPrice,
         quantity: 0
-      }
+      };
     }
-    
-    this.itemsValue[itemId].quantity++
-    this.updateQuantityDisplay(itemId)
-    this.updateCartDisplay()
-    this.saveToLocalStorage()
-    this.showAddToCartAnimation()
+
+    currentItems[itemId].quantity++;
+    this.itemsValue = currentItems;
+
+    this.updateQuantityDisplay(itemId);
+    this.showAddToCartAnimation();
   }
 
   decreaseQuantity(event) {
-    const itemId = event.params.itemId
-    
-    if (this.itemsValue[itemId] && this.itemsValue[itemId].quantity > 0) {
-      this.itemsValue[itemId].quantity--
-      
-      if (this.itemsValue[itemId].quantity === 0) {
-        delete this.itemsValue[itemId]
+    const itemId = event.params.itemId;
+    const currentItems = { ...this.itemsValue };
+    const item = currentItems[itemId];
+
+    if (item && item.quantity > 0) {
+      item.quantity--;
+
+      if (item.quantity === 0) {
+        delete currentItems[itemId];
       }
     }
     
-    this.updateQuantityDisplay(itemId)
-    this.updateCartDisplay()
-    this.saveToLocalStorage()
+    this.itemsValue = currentItems;
+    this.updateQuantityDisplay(itemId);
   }
 
   updateQuantityDisplay(itemId) {
-    const quantityElement = this.element.querySelector(`[data-shopping-cart-target="quantity${itemId}"]`)
-    const decreaseBtn = this.element.querySelector(`[data-shopping-cart-target="decreaseBtn${itemId}"]`)
-    const quantity = this.itemsValue[itemId]?.quantity || 0
+    const item = this.itemsValue[itemId];
+    const quantity = item ? item.quantity : 0;
+
+    const quantityElement = this.element.querySelector(`[data-shopping-cart-target="quantity${itemId}"]`);
+    const decreaseBtn = this.element.querySelector(`[data-shopping-cart-target="decreaseBtn${itemId}"]`);
     
     if (quantityElement) {
-      quantityElement.textContent = quantity
+      quantityElement.textContent = quantity;
     }
     
     if (decreaseBtn) {
-      decreaseBtn.disabled = quantity === 0
+      decreaseBtn.disabled = quantity === 0;
     }
   }
 
   updateCartDisplay() {
-    const totalItems = Object.values(this.itemsValue).reduce((sum, item) => sum + item.quantity, 0)
+    const totalItems = Object.values(this.itemsValue).reduce((sum, item) => sum + item.quantity, 0);
     
-    if (totalItems > 0) {
-      this.floatingCartTarget.classList.remove("hidden")
-      this.cartCountTarget.textContent = totalItems
-    } else {
-      this.floatingCartTarget.classList.add("hidden")
+    if (this.hasFloatingCartTarget && totalItems > 0) {
+      this.floatingCartTarget.classList.remove("hidden");
+      if (this.hasCartCountTarget) {
+        this.cartCountTarget.textContent = totalItems;
+      }
+    } else if (this.hasFloatingCartTarget) {
+      this.floatingCartTarget.classList.add("hidden");
     }
-  }
-
-  showCart() {
-    if (Object.keys(this.itemsValue).length === 0) {
-      alert('Your cart is empty! Add some items first.')
-      return
-    }
-    
-    // Navigate to order form with current cart items
-    const cartData = encodeURIComponent(JSON.stringify(this.itemsValue))
-    window.location.href = `/orders/new?cart=${cartData}`
   }
 
   showAddToCartAnimation() {
-    // Simple animation feedback
-    this.floatingCartTarget.style.transform = 'scale(1.1)'
-    setTimeout(() => {
-      this.floatingCartTarget.style.transform = 'scale(1)'
-    }, 200)
-  }
-
-  saveToLocalStorage() {
-    localStorage.setItem("cartItems", JSON.stringify(this.itemsValue))
-  }
-
-  loadFromLocalStorage() {
-    const stored = localStorage.getItem("cartItems")
-    if (stored) {
-      try {
-        this.itemsValue = JSON.parse(stored)
-        Object.keys(this.itemsValue).forEach(itemId => {
-          this.updateQuantityDisplay(itemId)
-        })
-      } catch (e) {
-        console.error('Error loading cart from localStorage:', e)
-        this.itemsValue = {}
-      }
+    if (this.hasFloatingCartTarget) {
+      this.floatingCartTarget.style.transform = 'scale(1.1)';
+      setTimeout(() => {
+        this.floatingCartTarget.style.transform = 'scale(1)';
+      }, 200);
     }
   }
 
-  clearCart() {
-    this.itemsValue = {}
-    localStorage.removeItem("cartItems")
-    
-    // Update all quantity displays
-    Object.keys(this.itemsValue).forEach(itemId => {
-      this.updateQuantityDisplay(itemId)
-    })
-    
-    this.updateCartDisplay()
+  saveToLocalStorage() {
+    localStorage.setItem("cartItems", JSON.stringify(this.itemsValue));
+  }
+
+  loadFromLocalStorage() {
+    const stored = localStorage.getItem("cartItems");
+    if (stored) {
+      try {
+        this.itemsValue = JSON.parse(stored);
+      } catch (e) {
+        console.error('Error loading cart from localStorage:', e);
+        this.itemsValue = {};
+      }
+    } else {
+      this.itemsValue = {};
+    }
   }
 }
