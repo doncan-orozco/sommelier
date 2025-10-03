@@ -1,5 +1,5 @@
 class OrdersController < ApplicationController
-  before_action :set_order, only: [:show, :update_status]
+  before_action :set_order, only: [ :show, :update_status ]
 
   def new
     @order = Order.new
@@ -27,7 +27,7 @@ class OrdersController < ApplicationController
   end
 
   def show
-    @order = Order.includes(order_items: [:menu_item]).find(params[:id])
+    @order = Order.includes(order_items: [ :menu_item ]).find(params[:id])
   end
 
   def update_status

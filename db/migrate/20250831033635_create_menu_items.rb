@@ -12,7 +12,7 @@ class CreateMenuItems < ActiveRecord::Migration[8.0]
     end
 
     add_index :menu_items, :name, unique: true
-    add_index :menu_items, [:category_id, :sort_order]
+    add_index :menu_items, [ :category_id, :sort_order ]
     add_index :menu_items, :available
   end
 end

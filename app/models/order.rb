@@ -9,7 +9,7 @@ class Order < ApplicationRecord
   before_create :set_order_number
   after_update :broadcast_status_change, if: :saved_change_to_status?
 
-  scope :active, -> { where.not(status: 'delivered') }
+  scope :active, -> { where.not(status: "delivered") }
   scope :by_status, ->(status) { where(status: status) }
   scope :recent, -> { order(created_at: :desc) }
 
@@ -24,16 +24,16 @@ class Order < ApplicationRecord
 
   def status_color
     case status
-    when 'pending' then 'text-orange-600 bg-orange-100'
-    when 'preparing' then 'text-blue-600 bg-blue-100'
-    when 'ready' then 'text-green-600 bg-green-100'
-    when 'delivered' then 'text-gray-600 bg-gray-100'
-    else 'text-gray-600 bg-gray-100'
+    when "pending" then "text-orange-600 bg-orange-100"
+    when "preparing" then "text-blue-600 bg-blue-100"
+    when "ready" then "text-green-600 bg-green-100"
+    when "delivered" then "text-gray-600 bg-gray-100"
+    else "text-gray-600 bg-gray-100"
     end
   end
 
   def formatted_time
-    created_at.strftime('%H:%M')
+    created_at.strftime("%H:%M")
   end
 
   private

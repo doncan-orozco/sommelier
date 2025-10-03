@@ -1,16 +1,16 @@
 Rails.application.routes.draw do
-  devise_for :admin_users, path: 'admin', path_names: {
-    sign_in: 'login',
-    sign_out: 'logout',
-    sign_up: 'register'
+  devise_for :admin_users, path: "admin", path_names: {
+    sign_in: "login",
+    sign_out: "logout",
+    sign_up: "register"
   }
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-  root 'menu#index'
+  root "menu#index"
 
   # Public routes
-  resources :menu, only: [:index]
-  resources :orders, only: [:create, :show, :new] do
+  resources :menu, only: [ :index ]
+  resources :orders, only: [ :create, :show, :new ] do
     member do
       patch :update_status
     end
@@ -18,27 +18,27 @@ Rails.application.routes.draw do
 
   # Admin routes
   namespace :admin do
-    root 'dashboard#index'
+    root "dashboard#index"
     resources :categories
     resources :menu_items do
       member do
         patch :toggle_availability
       end
     end
-    resources :orders, only: [:index, :show, :update] do
+    resources :orders, only: [ :index, :show, :update ] do
       member do
         patch :update_status
       end
     end
-    get 'kitchen', to: 'kitchen#index'
-    get 'stats', to: 'dashboard#stats'
+    get "kitchen", to: "kitchen#index"
+    get "stats", to: "dashboard#stats"
   end
 
   # API routes for real-time updates
   namespace :api do
     namespace :v1 do
-      resources :orders, only: [:index, :show]
-      get 'kitchen/orders', to: 'kitchen#orders'
+      resources :orders, only: [ :index, :show ]
+      get "kitchen/orders", to: "kitchen#orders"
     end
   end
 

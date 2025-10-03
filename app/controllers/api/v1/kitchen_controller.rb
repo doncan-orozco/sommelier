@@ -1,6 +1,6 @@
 class Api::V1::KitchenController < Api::V1::BaseController
   def orders
-    orders = Order.includes(order_items: [:menu_item])
+    orders = Order.includes(order_items: [ :menu_item ])
                   .active
                   .recent
 

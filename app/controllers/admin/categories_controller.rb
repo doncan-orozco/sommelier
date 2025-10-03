@@ -1,5 +1,5 @@
 class Admin::CategoriesController < Admin::BaseController
-  before_action :set_category, only: [:show, :edit, :update, :destroy]
+  before_action :set_category, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @categories = Category.includes(:menu_items).ordered
@@ -17,7 +17,7 @@ class Admin::CategoriesController < Admin::BaseController
     @category = Category.new(category_params)
 
     if @category.save
-      redirect_to admin_categories_path, notice: 'Category was successfully created.'
+      redirect_to admin_categories_path, notice: "Category was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -28,7 +28,7 @@ class Admin::CategoriesController < Admin::BaseController
 
   def update
     if @category.update(category_params)
-      redirect_to admin_categories_path, notice: 'Category was successfully updated.'
+      redirect_to admin_categories_path, notice: "Category was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -36,10 +36,10 @@ class Admin::CategoriesController < Admin::BaseController
 
   def destroy
     if @category.menu_items.any?
-      redirect_to admin_categories_path, alert: 'Cannot delete category with menu items. Please move or delete the items first.'
+      redirect_to admin_categories_path, alert: "Cannot delete category with menu items. Please move or delete the items first."
     else
       @category.destroy
-      redirect_to admin_categories_path, notice: 'Category was successfully deleted.'
+      redirect_to admin_categories_path, notice: "Category was successfully deleted."
     end
   end
 

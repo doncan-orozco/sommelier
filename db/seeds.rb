@@ -168,7 +168,7 @@ puts "Creating sample orders..."
   order = Order.create!(
     table_name: "Customer #{i + 1}",
     notes: i == 0 ? "No onions please" : nil,
-    status: ['pending', 'preparing', 'ready'].sample
+    status: [ 'pending', 'preparing', 'ready' ].sample
   )
 
   # Add 1-3 random items to each order
