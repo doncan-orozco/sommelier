@@ -1,0 +1,18 @@
+{ 
+  "[ruby]": {
+    "editor.defaultFormatter": "Shopify.ruby-lsp",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": false,
+    "editor.insertSpaces": true,
+    "editor.rulers": [
+      120
+    ],
+    "editor.semanticHighlighting.enabled": true,
+    "editor.tabSize": 2,
+  },
+  "rubyLsp.linters": [
+    "RuboCop"
+  ],
+  "rubyLsp.bundleGemfile": "Gemfile",
+  "rubyLsp.formatter": "rubocop_internal",
+}
